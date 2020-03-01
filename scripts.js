@@ -1,9 +1,18 @@
 const xhr = new XMLHttpRequest();
-xhr.responseType = 'json';
 let accessKey = localStorage.getItem('accessKey');
 let url = 'https://www.forverkliga.se/JavaScript/api/crud.php?key=' + accessKey;
-let x = document.getElementById('registerNewUser');
-x.onclick = GenerateNewAccessKey;
+let responseKey = '';
+
+// EventListeners for buttons.
+document.getElementById('submitBookButton').addEventListener('click', HandleInputFieldData);
+document.getElementById('registerNewUser').addEventListener('click', GenerateNewAccessKey);
+
+
+function HandleInputFieldData() {
+    // add error checks here (such as is field empty, if checks pass, then call AddNewBook function)
+    AddNewBook(document.getElementById('bookTitleInput').value,
+        document.getElementById('bookAuthorInput').value)
+}
 
 function AddNewBook(bookTitleInput, bookAuthorInput) {
     if (document.getElementById('bookTitleInput') == "" || document.getElementById('bookAuthorInput') == "") {
@@ -16,28 +25,46 @@ function AddNewBook(bookTitleInput, bookAuthorInput) {
     }
 }
 
-// Not asynchronous, we'll want to wait for this one.
+function DisplayAllBooks() {
+    let output = '';
+
+    for (let i in bookList) {
+        output += '<ul>' +
+            '<li> ID: ' + bookList[i].id + '</li>' +
+            '<li> Title: ' + bookList[i].title + '</li>' +
+            '<li> Author: ' + bookList[i].author + '</li>' +
+            '</ul>';
+    }
+
+    document.getElementById('bookListDiv').innerHTML = output;
+}
+
+
 function GenerateNewAccessKey() {
-    fetch('https://raw.githubusercontent.com/SMAPPNYU/ProgrammerGroup/master/LargeDataSets/sample-tweet.raw.json')
-        .then((response) => {
-            console.log('got response');
-            return response.json();
-        })
-        .then((jsonResponse) => {
-            console.log('Pontus fint valda ord, numera censurerat!');
-        }).catch((error) => {
-            console.log('Failed');
-        });
+    xhr.open("GET", "https://www.forverkliga.se/JavaScript/api/crud.php?requestKey", true);
+    xhr.onload = function () {
+        if (this.status == 200)
+            responseKey = JSON.parse(xhr.responseText).key;
+
+        alert(responseKey);
+    }
+    xhr.send();
+    localStorage.setItem('accessKey', responseKey);
 }
 
 //function GenerateNewAccessKey() {
-//    xhr.open("GET", "https://www.forverkliga.se/JavaScript/api/crud.php?requestKey", false);
-//    xhr.send();
-//
-//    // let key = JSON.parse(xhr.responseText).key;
-//    let key = xhr.responseText.key;
-//    alert(xhr.responseText);
-//    localStorage.setItem('accessKey', key);
+//    fetch('https://raw.githubusercontent.com/SMAPPNYU/ProgrammerGroup/master/LargeDataSets/sample-tweet.raw.json')
+//        .then((response) => {
+//            console.log('got response');
+//            return response.json();
+//        })
+//        .then((jsonResponse) => {
+//            console.log('Pontus fint valda ord, numera censurerat!');
+//            let bajs = jsonResponse['key'];
+//            alert(bajs);
+//        }).catch((error) => {
+//            console.log('Failed');
+//        });
 //}
 
 /* Create separate methods to:
