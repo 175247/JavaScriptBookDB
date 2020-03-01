@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="se">
 <head>
     <link rel="stylesheet" type="text/css" href="stylesheet.css">
@@ -17,8 +17,12 @@
             <input type="button"
                    form="formToSubmitBook"
                    id="submitBookButton"
-                   value="Submit "/>
+                   value="Submit "
+                   onclick="AddNewBook(document.getElementById('bookTitleInput').value,
+                    document.getElementById('bookAuthorInput').value)" />
             <button id="registerNewUser">New User</button>
+
+
         </form>
     </div>
     <script src="scripts.js"></script>
