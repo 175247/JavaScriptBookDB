@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="se">
+<head>
+    <link rel="stylesheet" type="text/css" href="stylesheet.css">
+    <title>Book DB</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+    <div id="mainDiv">
+        <p>Hey there! Add your favourite books by title and author.</p>
+        <form id="formToSubmitBook" action="#">
+            <label for="bookTitleInput">Title</label><br>
+            <input type="text" id="bookTitleInput" /><br>
+            <label for="bookAuthorInput">Author</label><br>
+            <input type="text" id="bookAuthorInput" /><br>
+            <input type="button"
+                   form="formToSubmitBook"
+                   id="submitBookButton"
+                   value="Submit "
+                   onclick="AddNewBook(document.getElementById('bookTitleInput').value,
+                    document.getElementById('bookAuthorInput').value)" />
+            <button id="registerNewUser">New User</button>
+
+
+        </form>
+    </div>
+    <script src="scripts.js"></script>
+</body>
+</html>
