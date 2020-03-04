@@ -9,7 +9,7 @@
 <body>
     <div id="mainDiv">
         <p>Hey there! Add your favourite books by title and author.</p>
-        <form id="formToSubmitBook" action="#">
+        <form id="formToSubmitBook">
             <label for="bookTitleInput">Title</label><br>
             <input type="text" id="bookTitleInput" /><br>
             <label for="bookAuthorInput">Author</label><br>
@@ -18,10 +18,10 @@
                    form="formToSubmitBook"
                    id="submitBookButton"
                    value="Submit "/>
-            <button id="registerNewUser">New User</button>
-
-
         </form>
+        <button id="registerNewUser">New User</button>
+        <button id="logKey" onclick="DisplayKey()">Show Access Key</button>
+        </div>
     </div>
     <script src="scripts.js"></script>
 </body>

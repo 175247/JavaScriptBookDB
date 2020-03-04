@@ -1,91 +1,123 @@
 const xhr = new XMLHttpRequest();
-let accessKey = localStorage.getItem('accessKey');
-let url = 'https://www.forverkliga.se/JavaScript/api/crud.php?key=' + accessKey;
-let responseKey = '';
+const currentAccessKey = localStorage.getItem('accessKey');
+const baseUrl = 'https://www.forverkliga.se/JavaScript/api/crud.php?key=' + currentAccessKey;
+const selectOperation = baseUrl + '&op=select';
+const insertOperation = baseUrl + '&op=insert';
+const updateOperation = baseUrl + '&op=update';
+const deleteOperation = baseUrl + '&op=delete';
+
+if (currentAccessKey == null) {
+    GenerateNewAccessKey();
+} else {
+    //DisplayAllBooks();
+}
 
 // EventListeners for buttons.
-document.getElementById('submitBookButton').addEventListener('click', HandleInputFieldData);
+document.getElementById('submitBookButton').addEventListener('click', ValidateInputData);
 document.getElementById('registerNewUser').addEventListener('click', GenerateNewAccessKey);
 
 
-function HandleInputFieldData() {
+function ValidateInputData() {
+    const title = document.getElementById('bookTitleInput').value;
+    const author = document.getElementById('bookAuthorInput').value;
+
     // add error checks here (such as is field empty, if checks pass, then call AddNewBook function)
-    AddNewBook(document.getElementById('bookTitleInput').value,
-        document.getElementById('bookAuthorInput').value)
-}
-
-function AddNewBook(bookTitleInput, bookAuthorInput) {
-    if (document.getElementById('bookTitleInput') == "" || document.getElementById('bookAuthorInput') == "") {
-        alert("The input is invalid, both fields must be filled.");
-        return;
-    }
+    //if (title.length < 2 || author.length < 2) {
+    //    alert("The input is invalid, both fields must be filled.");
+    //    return;
+    //}
     // else if (book title & author combination already exists) { alert("That title/author combination already exists.")}
-    else {
-        fetch();
-    }
+    // Else if all else is fine... Add the book.
+    AddNewBook(title, author);
+
+    
+
 }
 
-function DisplayAllBooks() {
-    let output = '';
+function AddNewBook(title, author) {
+    fetch(insertOperation + '&title=' + title + '&author=' + author)
+        .then((response) => {
+            return response.json();
+        })
+        .then((jsonResponse) => {
+            if (jsonResponse.status == "success") {
+                //console.log("Success");
+                //console.log(`Success! Title: ${title}, Author: ${author}, Id: ${jsonResponse.id}`);
+                //DisplayAllBooks(); <-- Use this one.
 
-    for (let i in bookList) {
-        output += '<ul>' +
-            '<li> ID: ' + bookList[i].id + '</li>' +
-            '<li> Title: ' + bookList[i].title + '</li>' +
-            '<li> Author: ' + bookList[i].author + '</li>' +
-            '</ul>';
-    }
-
-    document.getElementById('bookListDiv').innerHTML = output;
+            } else {
+                console.log("There was an error in your request");
+            }
+        });
 }
 
-
-function GenerateNewAccessKey() {
-    xhr.open("GET", "https://www.forverkliga.se/JavaScript/api/crud.php?requestKey", true);
-    xhr.onload = function () {
-        if (this.status == 200)
-            responseKey = JSON.parse(xhr.responseText).key;
-
-        alert(responseKey);
-    }
-    xhr.send();
-    localStorage.setItem('accessKey', responseKey);
-}
-
-//function GenerateNewAccessKey() {
-//    fetch('https://raw.githubusercontent.com/SMAPPNYU/ProgrammerGroup/master/LargeDataSets/sample-tweet.raw.json')
+//function GetBooks() {
+//    fetch(selectOperation)
 //        .then((response) => {
-//            console.log('got response');
 //            return response.json();
 //        })
 //        .then((jsonResponse) => {
-//            console.log('Pontus fint valda ord, numera censurerat!');
-//            let bajs = jsonResponse['key'];
-//            alert(bajs);
-//        }).catch((error) => {
-//            console.log('Failed');
-//        });
+//            const bookList = jsonResponse['data'];
+//            DisplayAllBooks(bookList);
+//        })
 //}
 
-/* Create separate methods to:
-Add Books (insert operation),
-Get Existing Books (select operation),
-Update Existing Book (update operation),
-Delete Existing Book (delete operation)
-*/
+//function DisplayAllBooks() {
+//    fetch(selectOperation)
+//        .then((response) => {
+//            return response.json();
+//        })
+//        .then((jsonResponse) => {
+//            return <div class="bookValue"></div> // Set all values and items the div must have, buttons and shit.
+//            //const bookList = jsonResponse['data'];
+//            //let output = '';
+//            //
+//            //for (let i in bookList) {
+//            //    output += '<ul>' +
+//            //        '<li> ID: ' + bookList[i].id + '</li>' +
+//            //        '<li> Title: ' + bookList[i].title + '</li>' +
+//            //        '<li> Author: ' + bookList[i].author + '</li>' +
+//            //        '</ul>';
+//            //}
+//            //
+//            //return document.getElementById('bookListDiv').innerHTML = output;
+//        })
+//}
+
+function GenerateNewAccessKey() {
+    fetch('https://www.forverkliga.se/JavaScript/api/crud.php?requestKey')
+        .then((response) => {
+            return response.json();
+        })
+        .then((jsonResponse) => {
+            localStorage.setItem('accessKey', jsonResponse['key']);
+            location.reload();
+        }).catch((error) => {
+            console.log(error);
+        });
+}
+
+function DisplayKey() {
+    console.log("Key: " + currentAccessKey);
+    console.log(localStorage.getItem('accessKey'));
+    console.log(localStorage);
+}
+
+// Får man använda <fieldset> istället?
+
+/*
+Syntax:
+
+let key = currentAccessKey
+const baseUrl = 'https://www.forverkliga.se/JavaScript/api/crud.php?key=' + key;
+const viewRequest = baseUrl + '&op=select';
 
 
+    op=insert
+    key - an API key that identifies the request
+    title - the book title
+    author - the name of the author
 
-
-
-
-// window.addEventListener('load', function() {
-//     let submitButton = document.getElementById('submitBookButton');
-//     submitButton.addEventListener('click', function() {
-//         
-//     })
-// 
-// })
-
-
-// https://www.w3schools.com/js/js_ajax_intro.asp
+Insert operation:
+baseUrl + '&title=' + title + '&author=' + author
+ */
