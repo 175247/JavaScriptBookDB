@@ -1,1 +1,17 @@
+#mainDiv {
+    border-bottom: 2px solid black;
+    width: 30vw;
+}
 
+#mainDiv button {
+    margin-bottom: 2vh;
+}
+
+.bookItem {
+    width: 30vw;
+}
+.bookItem ul {
+    margin-top: 3vh;
+    border-top: 2px solid black;
+    padding-top: 3vh;
+}

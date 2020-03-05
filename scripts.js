@@ -30,8 +30,6 @@ function ValidateInputData() {
     // Else if all else is fine... Add the book.
     AddNewBook(title, author);
 
-    
-
 }
 
 function AddNewBook(title, author) {
@@ -43,7 +41,6 @@ function AddNewBook(title, author) {
             if (jsonResponse.status == "success") {
                 console.log(`Success! Title: ${title}, Author: ${author}, Id: ${jsonResponse.id}`);
                 DisplayAllBooks();
-
             } else {
                 console.log("There was an error in your request");
             }
@@ -60,7 +57,6 @@ function DisplayAllBooks() {
                 console.log("There was an error handling your request");
                 DisplayAllBooks();
             } else {
-                console.log("derp successful!")
                 let bookList = jsonResponse['data'];
                 let output = '';
 
@@ -69,11 +65,15 @@ function DisplayAllBooks() {
                         '<li> ID: ' + item.id + '</li>' +
                         '<li> Title: ' + item.title + '</li>' +
                         '<li> Author: ' + item.author + '</li>' +
-                        '</ul>';
+                        '</ul>' +
+                        `<div class="bookItem"><button>Update</button><button>Delete</button>`;
                 });
                 document.getElementById('bookListDiv').innerHTML = output;
             }
         })
+        .catch((error) => {
+            console.log(error);
+        });
 }
 
 function GenerateNewAccessKey() {
@@ -84,7 +84,8 @@ function GenerateNewAccessKey() {
         .then((jsonResponse) => {
             localStorage.setItem('accessKey', jsonResponse['key']);
             location.reload();
-        }).catch((error) => {
+        })
+        .catch((error) => {
             console.log(error);
         });
 }
