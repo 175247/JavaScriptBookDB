@@ -9,7 +9,7 @@ const deleteOperation = baseUrl + '&op=delete';
 if (currentAccessKey == null) {
     GenerateNewAccessKey();
 } else {
-    //DisplayAllBooks();
+    DisplayAllBooks();
 }
 
 // EventListeners for buttons.
@@ -41,9 +41,8 @@ function AddNewBook(title, author) {
         })
         .then((jsonResponse) => {
             if (jsonResponse.status == "success") {
-                //console.log("Success");
-                //console.log(`Success! Title: ${title}, Author: ${author}, Id: ${jsonResponse.id}`);
-                //DisplayAllBooks(); <-- Use this one.
+                console.log(`Success! Title: ${title}, Author: ${author}, Id: ${jsonResponse.id}`);
+                DisplayAllBooks();
 
             } else {
                 console.log("There was an error in your request");
@@ -51,38 +50,31 @@ function AddNewBook(title, author) {
         });
 }
 
-//function GetBooks() {
-//    fetch(selectOperation)
-//        .then((response) => {
-//            return response.json();
-//        })
-//        .then((jsonResponse) => {
-//            const bookList = jsonResponse['data'];
-//            DisplayAllBooks(bookList);
-//        })
-//}
+function DisplayAllBooks() {
+    fetch(selectOperation)
+        .then((response) => {
+            return response.json();
+        })
+        .then((jsonResponse) => {
+            if (jsonResponse.status != "success") {
+                console.log("There was an error handling your request");
+                DisplayAllBooks();
+            } else {
+                console.log("derp successful!")
+                let bookList = jsonResponse['data'];
+                let output = '';
 
-//function DisplayAllBooks() {
-//    fetch(selectOperation)
-//        .then((response) => {
-//            return response.json();
-//        })
-//        .then((jsonResponse) => {
-//            return <div class="bookValue"></div> // Set all values and items the div must have, buttons and shit.
-//            //const bookList = jsonResponse['data'];
-//            //let output = '';
-//            //
-//            //for (let i in bookList) {
-//            //    output += '<ul>' +
-//            //        '<li> ID: ' + bookList[i].id + '</li>' +
-//            //        '<li> Title: ' + bookList[i].title + '</li>' +
-//            //        '<li> Author: ' + bookList[i].author + '</li>' +
-//            //        '</ul>';
-//            //}
-//            //
-//            //return document.getElementById('bookListDiv').innerHTML = output;
-//        })
-//}
+                bookList.forEach(function (item) {
+                    output += '<ul>' +
+                        '<li> ID: ' + item.id + '</li>' +
+                        '<li> Title: ' + item.title + '</li>' +
+                        '<li> Author: ' + item.author + '</li>' +
+                        '</ul>';
+                });
+                document.getElementById('bookListDiv').innerHTML = output;
+            }
+        })
+}
 
 function GenerateNewAccessKey() {
     fetch('https://www.forverkliga.se/JavaScript/api/crud.php?requestKey')
@@ -104,6 +96,7 @@ function DisplayKey() {
 }
 
 // Får man använda <fieldset> istället?
+// SVAR JA!
 
 /*
 Syntax:
