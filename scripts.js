@@ -68,6 +68,7 @@ function DisplayAllBooks() {
                         '</ul>' +
                         `<div class="bookItem"><button>Update</button><button>Delete</button>`;
                 });
+
                 document.getElementById('bookListDiv').innerHTML = output;
             }
         })

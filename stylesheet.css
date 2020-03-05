@@ -10,6 +10,7 @@
 .bookItem {
     width: 30vw;
 }
+
 .bookItem ul {
     margin-top: 3vh;
     border-top: 2px solid black;
