@@ -60,15 +60,17 @@ function DisplayAllBooks() {
                 let bookList = jsonResponse['data'];
                 let output = '';
 
+                // The bookItem div does not have an ending, to allow for easy borders between objects.
                 bookList.forEach(function (item) {
                     output += '<ul>' +
                         '<li> ID: ' + item.id + '</li>' +
                         '<li> Title: ' + item.title + '</li>' +
                         '<li> Author: ' + item.author + '</li>' +
                         '</ul>' +
-                        `<div class="bookItem"><button>Update</button><button>Delete</button>`;
+                        `<div class="bookItem">
+                            <button onclick="UpdateBook(${item.id})">Update</button>
+                            <button onclick="DeleteBook(${item.id})">Delete</button>`;
                 });
-
                 document.getElementById('bookListDiv').innerHTML = output;
             }
         })
@@ -88,6 +90,39 @@ function GenerateNewAccessKey() {
         })
         .catch((error) => {
             console.log(error);
+        });
+}
+
+function UpdateBook(id) {
+    title = document.getElementById('bookTitleInput').value;
+    author = document.getElementById('bookAuthorInput').value;
+
+    fetch(updateOperation + '&id=' + id + '&title=' + title + '&author=' + author)
+        .then((response) => {
+            return response.json();
+        })
+        .then((jsonResponse) => {
+            if (jsonResponse.status != "success") {
+                console.log("There was an error handling your request");
+                UpdateBook(id);
+            } else {
+                DisplayAllBooks();
+            }
+        });
+}
+
+function DeleteBook(id) {
+    fetch(deleteOperation + '&id=' + id)
+        .then((response) => {
+            return response.json();
+        })
+        .then((jsonResponse) => {
+            if (jsonResponse.status != "success") {
+                console.log("There was an error handling your request");
+                DeleteBook(id);
+            } else {
+                DisplayAllBooks();
+            }
         });
 }
 
