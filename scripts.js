@@ -5,6 +5,8 @@ const selectOperation = baseUrl + '&op=select';
 const insertOperation = baseUrl + '&op=insert';
 const updateOperation = baseUrl + '&op=update';
 const deleteOperation = baseUrl + '&op=delete';
+const maxAttemptsAllowed = 10;
+let totalAttempts = 0;
 
 if (currentAccessKey == null) {
     GenerateNewAccessKey();
@@ -33,97 +35,157 @@ function ValidateInputData() {
 }
 
 function AddNewBook(title, author) {
-    fetch(insertOperation + '&title=' + title + '&author=' + author)
-        .then((response) => {
-            return response.json();
-        })
-        .then((jsonResponse) => {
-            if (jsonResponse.status == "success") {
-                console.log(`Success! Title: ${title}, Author: ${author}, Id: ${jsonResponse.id}`);
-                DisplayAllBooks();
-            } else {
-                console.log("There was an error in your request");
-            }
-        });
+    if (totalAttempts < maxAttemptsAllowed) {
+        fetch(insertOperation + '&title=' + title + '&author=' + author)
+            .then((response) => {
+                return response.json();
+            })
+            .then((jsonResponse) => {
+                if (jsonResponse.status != "success") {
+                    //totalAttempts++;
+                    //console.log(`Attempt #${totalAttempts}:`);
+                    //console.log("There was an error in the request to the server.");
+                    HandleFailedRequest();
+                    AddNewBook(title, author);
+                } else {
+                    HandleSuccessfulRequest();
+                    //console(`Success! Title: ${title}, Author: ${author}, Id: ${jsonResponse.id}`);
+                    //console.log(`It took ${totalAttempts} attempts to complete the request.`);
+                    //totalAttempts = 0;
+                    DisplayAllBooks();
+                }
+            });
+    } else {
+        //console.log("Max number of connection attempts reached. Please try again later.");
+        //totalAttempts = 0;
+        HandleFailedRequest();
+    }
 }
 
 function DisplayAllBooks() {
-    fetch(selectOperation)
-        .then((response) => {
-            return response.json();
-        })
-        .then((jsonResponse) => {
-            if (jsonResponse.status != "success") {
-                console.log("There was an error handling your request");
-                DisplayAllBooks();
-            } else {
-                let bookList = jsonResponse['data'];
-                let output = '';
+    if (totalAttempts < maxAttemptsAllowed) {
+        fetch(selectOperation)
+            .then((response) => {
+                return response.json();
+            })
+            .then((jsonResponse) => {
+                if (jsonResponse.status != "success") {
+                    //totalAttempts++;
+                    //console.log(`Attempt #${totalAttempts}:`);
+                    //console.log("There was an error in the request to the server.");
+                    HandleFailedRequest();
+                    DisplayAllBooks();
+                } else {
+                    HandleSuccessfulRequest();
+                    //console.log(`It took ${totalAttempts} tries to complete the request.`);
+                    //totalAttempts = 0;
+                    let bookList = jsonResponse['data'];
+                    let output = '';
 
-                // The bookItem div does not have an ending, to allow for easy borders between objects.
-                bookList.forEach(function (item) {
-                    output += '<ul>' +
-                        '<li> ID: ' + item.id + '</li>' +
-                        '<li> Title: ' + item.title + '</li>' +
-                        '<li> Author: ' + item.author + '</li>' +
-                        '</ul>' +
-                        `<div class="bookItem">
+                    // The bookItem div does not have an ending, to allow for easy borders between objects.
+                    bookList.forEach(function (item) {
+                        output += '<ul>' +
+                            '<li> ID: ' + item.id + '</li>' +
+                            '<li> Title: ' + item.title + '</li>' +
+                            '<li> Author: ' + item.author + '</li>' +
+                            '</ul>' +
+                            `<div class="bookItem">
                             <button onclick="UpdateBook(${item.id})">Update</button>
                             <button onclick="DeleteBook(${item.id})">Delete</button>`;
-                });
-                document.getElementById('bookListDiv').innerHTML = output;
-            }
-        })
-        .catch((error) => {
-            console.log(error);
-        });
+                    });
+                    document.getElementById('bookListDiv').innerHTML = output;
+                }
+            })
+            .catch((error) => {
+                console.log(error);
+            });
+    } else {
+        //console.log("Max number of connection attempts reached. Please try again later.");
+        //totalAttempts = 0;
+        HandleFailedRequest();
+    }
 }
 
 function GenerateNewAccessKey() {
-    fetch('https://www.forverkliga.se/JavaScript/api/crud.php?requestKey')
-        .then((response) => {
-            return response.json();
-        })
-        .then((jsonResponse) => {
-            localStorage.setItem('accessKey', jsonResponse['key']);
-            location.reload();
-        })
-        .catch((error) => {
-            console.log(error);
-        });
+    if (totalAttempts < maxAttemptsAllowed) {
+        fetch('https://www.forverkliga.se/JavaScript/api/crud.php?requestKey')
+            .then((response) => {
+                return response.json();
+            })
+            .then((jsonResponse) => {
+                if (jsonResponse.status != "success") {
+                    //totalAttempts++;
+                    //console.log(`Attempt #${totalAttempts}:`);
+                    //console.log("There was an error in the request to the server.");
+                    HandleFailedRequest();
+                    GenerateNewAccessKey();
+                } else {
+                    HandleSuccessfulRequest();
+                    localStorage.setItem('accessKey', jsonResponse['key']);
+                    location.reload();
+                }
+            })
+            .catch((error) => {
+                console.log(error);
+            });
+    } else {
+        //console.log("Max number of connection attempts reached. Please try again later.");
+        //totalAttempts = 0;
+        HandleFailedRequest();
+    }
 }
 
 function UpdateBook(id) {
-    title = document.getElementById('bookTitleInput').value;
-    author = document.getElementById('bookAuthorInput').value;
+    if (totalAttempts < maxAttemptsAllowed) {
+        title = document.getElementById('bookTitleInput').value;
+        author = document.getElementById('bookAuthorInput').value;
 
-    fetch(updateOperation + '&id=' + id + '&title=' + title + '&author=' + author)
-        .then((response) => {
-            return response.json();
-        })
-        .then((jsonResponse) => {
-            if (jsonResponse.status != "success") {
-                console.log("There was an error handling your request");
-                UpdateBook(id);
-            } else {
-                DisplayAllBooks();
-            }
-        });
+        fetch(updateOperation + '&id=' + id + '&title=' + title + '&author=' + author)
+            .then((response) => {
+                return response.json();
+            })
+            .then((jsonResponse) => {
+                if (jsonResponse.status != "success") {
+                    //totalAttempts++;
+                    //console.log(`Attempt #${totalAttempts}:`);
+                    //console.log("There was an error in the request to the server.");
+                    HandleFailedRequest();
+                    UpdateBook(id);
+                } else {
+                    HandleSuccessfulRequest();
+                    DisplayAllBooks();
+                }
+            });
+    } else {
+        //console.log("Max number of connection attempts reached. Please try again later.");
+        //totalAttempts = 0;
+        HandleFailedRequest();
+    }
 }
 
 function DeleteBook(id) {
-    fetch(deleteOperation + '&id=' + id)
-        .then((response) => {
-            return response.json();
-        })
-        .then((jsonResponse) => {
-            if (jsonResponse.status != "success") {
-                console.log("There was an error handling your request");
-                DeleteBook(id);
-            } else {
-                DisplayAllBooks();
-            }
-        });
+    if (totalAttempts < maxAttemptsAllowed) {
+        fetch(deleteOperation + '&id=' + id)
+            .then((response) => {
+                return response.json();
+            })
+            .then((jsonResponse) => {
+                if (jsonResponse.status != "success") {
+                    //totalAttempts++;
+                    //console.log(`Attempt #${totalAttempts}:`);
+                    //console.log("There was an error in the request to the server.");
+                    HandleFailedRequest();
+                    DeleteBook(id);
+                } else {
+                    HandleSuccessfulRequest();
+                    DisplayAllBooks();
+                }
+            });
+    } else {
+        //console.log("Max number of connection attempts reached. Please try again later.");
+        //totalAttempts = 0;
+        HandleFailedRequest();
+    }
 }
 
 function DisplayKey() {
@@ -132,8 +194,33 @@ function DisplayKey() {
     console.log(localStorage);
 }
 
+function HandleFailedRequest() {
+    console.clear();
+    totalAttempts++;
+    console.log(`Attempt #${totalAttempts}:`);
+    console.log("There was an error in handling the request to the server.");
+    if (totalAttempts == maxAttemptsAllowed) {
+        console.log("Max number of connection attempts reached. Please try again later.");
+        totalAttempts = 0;
+    }
+}
+
+function HandleSuccessfulRequest() {
+    console.log("Success!");
+    console.log(`It took ${totalAttempts} attempts to complete the request.`);
+    document.getElementById('bookTitleInput').value = '';
+    document.getElementById('bookAuthorInput').value = '';
+    totalAttempts = 0;
+}
+
 // Får man använda <fieldset> istället?
 // SVAR JA!
+
+
+/*
+ * 
+ */
+
 
 /*
 Syntax:
