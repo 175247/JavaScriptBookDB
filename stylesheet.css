@@ -1,10 +1,11 @@
 #mainDiv {
     border-bottom: 2px solid black;
     width: 30vw;
+    overflow: hidden;
 }
 
 #mainDiv button {
-    margin-bottom: 2vh;
+    margin-bottom: 3vh;
 }
 
 .bookItem {
@@ -19,4 +20,41 @@
 
 .bookItem button {
     margin-right: 1vw;
+}
+
+#opacityCover {
+    height: 100vh;
+    width: 100vw;
+    position: absolute;
+    background-color: black;
+    opacity: 80%
+}
+
+#opacityCover #popUpDiv {
+    background-color: lightgray;
+    position: relative;
+    height: 30vh;
+    width: 15vw;
+    border: 2px solid black;
+    margin: 30vh auto;
+}
+
+#popUpForm {
+    width: 11vw;
+    height: 10vh;
+    display: flex;
+    flex-direction: column;
+    margin: 5vh auto 0 auto;
+}
+
+#popUpDiv #popUpSubmitButton {
+    position: absolute;
+    margin-top: 5vh;
+    margin-left: 3vw;
+}
+
+#popUpDiv #popUpCancelButton {
+    position: absolute;
+    margin-top: 5vh;
+    margin-left: 8vw;
 }

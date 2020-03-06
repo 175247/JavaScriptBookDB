@@ -7,6 +7,8 @@ const updateOperation = baseUrl + '&op=update';
 const deleteOperation = baseUrl + '&op=delete';
 const maxAttemptsAllowed = 10;
 let totalAttempts = 0;
+let opacityDiv = document.getElementById('opacityCover');
+opacityDiv.style.visibility = "hidden";
 
 if (currentAccessKey == null) {
     GenerateNewAccessKey();
@@ -17,7 +19,7 @@ if (currentAccessKey == null) {
 // EventListeners for buttons.
 document.getElementById('submitBookButton').addEventListener('click', ValidateInputData);
 document.getElementById('registerNewUser').addEventListener('click', GenerateNewAccessKey);
-
+document.getElementById('popUpCancelButton').addEventListener('click', HidePopUpForm);
 
 function ValidateInputData() {
     const title = document.getElementById('bookTitleInput').value;
@@ -34,6 +36,30 @@ function ValidateInputData() {
 
 }
 
+function OpenPopUpForm(id) {
+    opacityDiv.style.visibility = "visible";
+    HandlePopUpForm(id);
+}
+
+function HidePopUpForm() {
+    opacityDiv.style.visibility = "hidden";
+}
+
+function HandlePopUpForm(id) {
+    document.getElementById('popUpSubmitButton').addEventListener('click',
+        function () {
+            UpdateBook(id,
+                document.getElementById('popUpTitleInput').value,
+                document.getElementById('popUpAuthorInput').value
+            )
+        });
+
+    document.getElementById('popUpTitleInput').value = null;
+    document.getElementById('popUpAuthorInput').value = null;
+}
+
+
+
 function AddNewBook(title, author) {
     if (totalAttempts < maxAttemptsAllowed) {
         fetch(insertOperation + '&title=' + title + '&author=' + author)
@@ -42,22 +68,14 @@ function AddNewBook(title, author) {
             })
             .then((jsonResponse) => {
                 if (jsonResponse.status != "success") {
-                    //totalAttempts++;
-                    //console.log(`Attempt #${totalAttempts}:`);
-                    //console.log("There was an error in the request to the server.");
                     HandleFailedRequest();
                     AddNewBook(title, author);
                 } else {
                     HandleSuccessfulRequest();
-                    //console(`Success! Title: ${title}, Author: ${author}, Id: ${jsonResponse.id}`);
-                    //console.log(`It took ${totalAttempts} attempts to complete the request.`);
-                    //totalAttempts = 0;
                     DisplayAllBooks();
                 }
             });
     } else {
-        //console.log("Max number of connection attempts reached. Please try again later.");
-        //totalAttempts = 0;
         HandleFailedRequest();
     }
 }
@@ -70,19 +88,13 @@ function DisplayAllBooks() {
             })
             .then((jsonResponse) => {
                 if (jsonResponse.status != "success") {
-                    //totalAttempts++;
-                    //console.log(`Attempt #${totalAttempts}:`);
-                    //console.log("There was an error in the request to the server.");
                     HandleFailedRequest();
                     DisplayAllBooks();
                 } else {
                     HandleSuccessfulRequest();
-                    //console.log(`It took ${totalAttempts} tries to complete the request.`);
-                    //totalAttempts = 0;
                     let bookList = jsonResponse['data'];
                     let output = '';
 
-                    // The bookItem div does not have an ending, to allow for easy borders between objects.
                     bookList.forEach(function (item) {
                         output += '<ul>' +
                             '<li> ID: ' + item.id + '</li>' +
@@ -90,7 +102,7 @@ function DisplayAllBooks() {
                             '<li> Author: ' + item.author + '</li>' +
                             '</ul>' +
                             `<div class="bookItem">
-                            <button onclick="UpdateBook(${item.id})">Update</button>
+                            <button onclick="OpenPopUpForm(${item.id})">Update</button>
                             <button onclick="DeleteBook(${item.id})">Delete</button>`;
                     });
                     document.getElementById('bookListDiv').innerHTML = output;
@@ -100,8 +112,6 @@ function DisplayAllBooks() {
                 console.log(error);
             });
     } else {
-        //console.log("Max number of connection attempts reached. Please try again later.");
-        //totalAttempts = 0;
         HandleFailedRequest();
     }
 }
@@ -114,9 +124,6 @@ function GenerateNewAccessKey() {
             })
             .then((jsonResponse) => {
                 if (jsonResponse.status != "success") {
-                    //totalAttempts++;
-                    //console.log(`Attempt #${totalAttempts}:`);
-                    //console.log("There was an error in the request to the server.");
                     HandleFailedRequest();
                     GenerateNewAccessKey();
                 } else {
@@ -129,38 +136,34 @@ function GenerateNewAccessKey() {
                 console.log(error);
             });
     } else {
-        //console.log("Max number of connection attempts reached. Please try again later.");
-        //totalAttempts = 0;
         HandleFailedRequest();
     }
 }
 
-function UpdateBook(id) {
+function UpdateBook(id, title, author) {
+    let thisId = id;
+    let thisTitle = title;
+    let thisAuthor = author;
     if (totalAttempts < maxAttemptsAllowed) {
-        title = document.getElementById('bookTitleInput').value;
-        author = document.getElementById('bookAuthorInput').value;
 
+        console.log(id, title, author);
         fetch(updateOperation + '&id=' + id + '&title=' + title + '&author=' + author)
             .then((response) => {
                 return response.json();
             })
             .then((jsonResponse) => {
                 if (jsonResponse.status != "success") {
-                    //totalAttempts++;
-                    //console.log(`Attempt #${totalAttempts}:`);
-                    //console.log("There was an error in the request to the server.");
                     HandleFailedRequest();
-                    UpdateBook(id);
+                    UpdateBook(id, title, author);
                 } else {
                     HandleSuccessfulRequest();
                     DisplayAllBooks();
                 }
             });
     } else {
-        //console.log("Max number of connection attempts reached. Please try again later.");
-        //totalAttempts = 0;
         HandleFailedRequest();
     }
+    opacityDiv.style.visibility = "hidden";
 }
 
 function DeleteBook(id) {
@@ -171,9 +174,6 @@ function DeleteBook(id) {
             })
             .then((jsonResponse) => {
                 if (jsonResponse.status != "success") {
-                    //totalAttempts++;
-                    //console.log(`Attempt #${totalAttempts}:`);
-                    //console.log("There was an error in the request to the server.");
                     HandleFailedRequest();
                     DeleteBook(id);
                 } else {
@@ -182,8 +182,6 @@ function DeleteBook(id) {
                 }
             });
     } else {
-        //console.log("Max number of connection attempts reached. Please try again later.");
-        //totalAttempts = 0;
         HandleFailedRequest();
     }
 }
@@ -195,13 +193,11 @@ function DisplayKey() {
 }
 
 function HandleFailedRequest() {
-    console.clear();
     totalAttempts++;
     console.log(`Attempt #${totalAttempts}:`);
     console.log("There was an error in handling the request to the server.");
     if (totalAttempts == maxAttemptsAllowed) {
         console.log("Max number of connection attempts reached. Please try again later.");
-        totalAttempts = 0;
     }
 }
 
