@@ -33,7 +33,6 @@ function ValidateInputData() {
     // else if (book title & author combination already exists) { alert("That title/author combination already exists.")}
     // Else if all else is fine... Add the book.
     AddNewBook(title, author);
-
 }
 
 function OpenPopUpForm(id) {
@@ -57,8 +56,6 @@ function HandlePopUpForm(id) {
     document.getElementById('popUpTitleInput').value = null;
     document.getElementById('popUpAuthorInput').value = null;
 }
-
-
 
 function AddNewBook(title, author) {
     if (totalAttempts < maxAttemptsAllowed) {
