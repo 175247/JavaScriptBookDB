@@ -100,6 +100,11 @@ function DisplayAllBooks() {
                 } else {
                     HandleSuccessfulRequest();
                     let bookList = jsonResponse['data'];
+
+                    bookList.sort(function (entry1, entry2) {
+                        return entry1.id - entry2.id;
+                    });
+
                     let output = '';
 
                     bookList.forEach(function (item) {
@@ -151,10 +156,6 @@ function GenerateNewAccessKey() {
 }
 
 function UpdateBook(id, title, author) {
-    console.log("Updating book in database");
-    let thisId = id;
-    let thisTitle = title;
-    let thisAuthor = author;
     if (totalAttempts < maxAttemptsAllowed) {
         totalAttempts++;
 
@@ -169,22 +170,24 @@ function UpdateBook(id, title, author) {
                     UpdateBook(id, title, author);
                 } else {
                     HandleSuccessfulRequest();
-                    DisplayAllBooks();
+                    location.reload();
                 }
             })
             .catch((error) => {
                 console.log(error);
             });
     } else {
+        location.reload();
         LoadDefaultState();
     }
     opacityDiv.style.visibility = "hidden";
+    LoadDefaultState();
 }
 
 function DeleteBook(id) {
-    console.log("Deleting book from database");
-
     if (totalAttempts < maxAttemptsAllowed) {
+        totalAttempts++;
+
         fetch(deleteOperation + '&id=' + id)
             .then((response) => {
                 return response.json();
@@ -207,9 +210,7 @@ function DeleteBook(id) {
 }
 
 function DisplayKey() {
-    console.log("Key: " + currentAccessKey);
-    console.log(localStorage.getItem('accessKey'));
-    console.log(localStorage);
+    alert("Current access key: " + currentAccessKey);
 }
 
 function HandleFailedRequest() {
