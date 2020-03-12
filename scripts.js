@@ -292,3 +292,4 @@ baseUrl + '&title=' + title + '&author=' + author
  * but console prints amount of attempts when it shouldn't, when adding a book.
  * Also doesn't reset properly again when adding/deleting books.
  * Assume it has something to do with setting totalAttempts = 0; within the AddBook function (if/else/function scopes)...
+ */
