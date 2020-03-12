@@ -25,10 +25,10 @@ document.getElementById('popUpCancelButton').addEventListener('click', HidePopUp
 function ValidateInputData(title, author) {
 
     if (title.length < 2 || author.length < 2) {
-        alert("Invalid input, both fields must be 2 characters or longer.");
+        alert("Invalid input: Both fields must be 2 characters or longer.");
         return false;
     } else if (TitleAndAuthorPresent(title, author) == true) {
-        console.log("That title and author combination is already present.");
+        alert("Invalid input: That title and author combination already exists.");
         return false;
     } else {
         return true;
@@ -75,10 +75,12 @@ function AddNewBook() {
     const author = document.getElementById('bookAuthorInput').value;
 
     if (ValidateInputData(title, author) == false) {
-        console.log("The validation check works! Wohoo!");
+        return;
     } else {
         if (totalAttempts < maxAttemptsAllowed) {
             totalAttempts++;
+            console.log(`Adding book to DB, attempt #${totalAttempts}`);
+
 
             fetch(insertOperation + '&title=' + title + '&author=' + author)
                 .then((response) => {
@@ -100,9 +102,7 @@ function AddNewBook() {
             console.log("Aborting request.");
             totalAttempts = 0;
         }
-        totalAttempts = 0;
     }
-    totalAttempts = 0;
 }
 
 function DisplayAllBooks() {
@@ -176,38 +176,44 @@ function GenerateNewAccessKey() {
 }
 
 function UpdateBook(id, title, author) {
-    if (totalAttempts < maxAttemptsAllowed) {
-        totalAttempts++;
 
-        console.log(id, title, author);
-        fetch(updateOperation + '&id=' + id + '&title=' + title + '&author=' + author)
-            .then((response) => {
-                return response.json();
-            })
-            .then((jsonResponse) => {
-                if (jsonResponse.status != "success") {
-                    HandleFailedRequest();
-                    UpdateBook(id, title, author);
-                } else {
-                    HandleSuccessfulRequest();
-                    location.reload();
-                }
-            })
-            .catch((error) => {
-                console.log(error);
-            });
-    } else {
+    if (ValidateInputData(title, author) == false) {
         location.reload();
+    } else {
+        if (totalAttempts < maxAttemptsAllowed) {
+            totalAttempts++;
+
+            console.log(id, title, author);
+            fetch(updateOperation + '&id=' + id + '&title=' + title + '&author=' + author)
+                .then((response) => {
+                    return response.json();
+                })
+                .then((jsonResponse) => {
+                    if (jsonResponse.status != "success") {
+                        HandleFailedRequest();
+                        UpdateBook(id, title, author);
+                    } else {
+                        HandleSuccessfulRequest();
+                        location.reload();
+                    }
+                })
+                .catch((error) => {
+                    console.log(error);
+                });
+        } else {
+            location.reload();
+            LoadDefaultState();
+        }
+        opacityDiv.style.visibility = "hidden";
         LoadDefaultState();
     }
-    opacityDiv.style.visibility = "hidden";
-    LoadDefaultState();
 }
 
 function DeleteBook(id) {
     if (totalAttempts < maxAttemptsAllowed) {
         totalAttempts++;
-
+        console.log(`Deleting book from DB, attempt #${totalAttempts}`);
+        
         fetch(deleteOperation + '&id=' + id)
             .then((response) => {
                 return response.json();
@@ -281,16 +287,4 @@ const viewRequest = baseUrl + '&op=select';
 
 Insert operation:
 baseUrl + '&title=' + title + '&author=' + author
- */
-
-
-
-
-
-
-/*
- * Checking length of input works, 
- * but console prints amount of attempts when it shouldn't, when adding a book.
- * Also doesn't reset properly again when adding/deleting books.
- * Assume it has something to do with setting totalAttempts = 0; within the AddBook function (if/else/function scopes)...
  */
