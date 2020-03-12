@@ -27,25 +27,25 @@ function ValidateInputData(title, author) {
     if (title.length < 2 || author.length < 2) {
         alert("Invalid input, both fields must be 2 characters or longer.");
         return false;
-    }
- //   else if (TitleAndAuthorPresent(title, author) == true) {
- //       console.log("That title and author combination is already present.");
- //       return false;
-    //   }
-    else {
+    } else if (TitleAndAuthorPresent(title, author) == true) {
+        console.log("That title and author combination is already present.");
+        return false;
+    } else {
         return true;
     }
 }
 
 function TitleAndAuthorPresent(title, author) {
-    for (let i = 0; i < bookList.length; i++) {
-        if (bookList[i].title == title && bookList[i].author == author) {
-            return true;
-        } else {
-            return false;
-        }
+
+    const titleIndex = bookList.findIndex(bookTitle => bookTitle.title == title);
+    const authorIndex = bookList.findIndex(bookAuthor => bookAuthor.author == author);
+
+    if ((titleIndex >= 0 && authorIndex >= 0) &&
+        (titleIndex == authorIndex)) {
+        return true;
+    } else {
+        return false;
     }
-   
 }
 
 function OpenPopUpForm(id) {
@@ -243,6 +243,7 @@ function HandleFailedRequest() {
 }
 
 function HandleSuccessfulRequest() {
+    console.log(`Attempt #${totalAttempts}:`);
     console.log("Success!");
     console.log(`It took ${totalAttempts} attempts to complete the request.`);
 
