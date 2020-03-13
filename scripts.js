@@ -5,7 +5,7 @@ const selectOperation = baseUrl + '&op=select';
 const insertOperation = baseUrl + '&op=insert';
 const updateOperation = baseUrl + '&op=update';
 const deleteOperation = baseUrl + '&op=delete';
-const maxAttemptsAllowed = 2;
+const maxAttemptsAllowed = 10;
 let bookList;
 let totalAttempts = 0;
 let opacityDiv = document.getElementById('opacityCover');
@@ -20,7 +20,9 @@ if (currentAccessKey == null) {
 // EventListeners for buttons.
 document.getElementById('submitBookButton').addEventListener('click', AddNewBook);
 document.getElementById('registerNewUser').addEventListener('click', GenerateNewAccessKey);
-document.getElementById('popUpCancelButton').addEventListener('click', HidePopUpForm);
+document.getElementById('popUpCancelButton').addEventListener('click', (function () { location.reload() }));
+document.getElementById('logKey').addEventListener('click', DisplayKey);
+document.getElementById('forceRefresh').addEventListener('click', (function () { location.reload() }));
 
 function ValidateInputData(title, author) {
 
@@ -53,18 +55,14 @@ function OpenPopUpForm(id) {
     HandlePopUpForm(id);
 }
 
-function HidePopUpForm() {
-    opacityDiv.style.visibility = "hidden";
-}
-
 function HandlePopUpForm(id) {
     document.getElementById('popUpSubmitButton').addEventListener('click',
-        function () {
-            UpdateBook(id,
-                document.getElementById('popUpTitleInput').value,
-                document.getElementById('popUpAuthorInput').value
-            )
-        });
+    function () {
+        UpdateBook(id,
+            document.getElementById('popUpTitleInput').value,
+            document.getElementById('popUpAuthorInput').value
+        )
+    });
 
     document.getElementById('popUpTitleInput').value = null;
     document.getElementById('popUpAuthorInput').value = null;
@@ -77,113 +75,92 @@ function AddNewBook() {
     if (ValidateInputData(title, author) == false) {
         return;
     } else {
-        if (totalAttempts < maxAttemptsAllowed) {
-            totalAttempts++;
-            console.log(`Adding book to DB, attempt #${totalAttempts}`);
-
-
-            fetch(insertOperation + '&title=' + title + '&author=' + author)
-                .then((response) => {
-                    return response.json();
-                })
-                .then((jsonResponse) => {
-                    if (jsonResponse.status != "success") {
-                        HandleFailedRequest();
-                        AddNewBook(title, author);
-                    } else {
-                        HandleSuccessfulRequest();
-                        DisplayAllBooks();
-                    }
-                })
-                .catch((error) => {
-                    console.log(error);
-                });
-        } else {
-            console.log("Aborting request.");
-            totalAttempts = 0;
-        }
+        totalAttempts++;
+        fetch(insertOperation + '&title=' + title + '&author=' + author)
+            .then((response) => {
+                return response.json();
+            })
+            .then((jsonResponse) => {
+                if (jsonResponse.status != "success" && totalAttempts < maxAttemptsAllowed) {
+                    HandleFailedRequest();
+                    AddNewBook(title, author);
+                } else if (jsonResponse.status != "success" && totalAttempts == maxAttemptsAllowed) {
+                    HandleFailedRequest();
+                } else {
+                    HandleSuccessfulRequest();
+                    DisplayAllBooks();
+                }
+            })
+            .catch((error) => {
+                console.log(error);
+            });
     }
 }
 
 function DisplayAllBooks() {
-    if (totalAttempts < maxAttemptsAllowed) {
-        totalAttempts++;
+    totalAttempts++;
+    fetch(selectOperation)
+        .then((response) => {
+            return response.json();
+        })
+        .then((jsonResponse) => {
+            if (jsonResponse.status != "success" && totalAttempts < maxAttemptsAllowed) {
+                HandleFailedRequest();
+                DisplayAllBooks();
+            } else if (jsonResponse.status != "success" && totalAttempts == maxAttemptsAllowed) {
+                HandleFailedRequest();
+            } else {
+                HandleSuccessfulRequest();
+                bookList = jsonResponse['data'];
 
-        fetch(selectOperation)
-            .then((response) => {
-                return response.json();
-            })
-            .then((jsonResponse) => {
-                if (jsonResponse.status != "success") {
-                    HandleFailedRequest();
-                    DisplayAllBooks();
-                } else {
-                    HandleSuccessfulRequest();
-                    bookList = jsonResponse['data'];
+                bookList.sort(function (entry1, entry2) {
+                    return entry1.id - entry2.id;
+                });
 
-                    bookList.sort(function (entry1, entry2) {
-                        return entry1.id - entry2.id;
-                    });
+                let output = '';
 
-                    let output = '';
-
-                    bookList.forEach(function (item) {
-                        output += '<ul>' +
-                            '<li> ID: ' + item.id + '</li>' +
-                            '<li> Title: ' + item.title + '</li>' +
-                            '<li> Author: ' + item.author + '</li>' +
-                            '</ul>' +
-                            `<div class="bookItem">
-                            <button onclick="OpenPopUpForm(${item.id})">Update</button>
-                            <button onclick="DeleteBook(${item.id})">Delete</button>`;
-                    });
-                    document.getElementById('bookListDiv').innerHTML = output;
-                }
-            })
-            .catch((error) => {
-                console.log(error);
-            });
-    } else {
-        console.log("Aborting request.");
-        LoadDefaultState();
-    }
+                bookList.forEach(function (item) {
+                    output += '<ul>' +
+                        '<li> ID: ' + item.id + '</li>' +
+                        '<li> Title: ' + item.title + '</li>' +
+                        '<li> Author: ' + item.author + '</li>' +
+                        '</ul>' +
+                        `<div class="bookItem">
+                        <button onclick="OpenPopUpForm(${item.id})">Update</button>
+                        <button onclick="DeleteBook(${item.id})">Delete</button>`;
+                });
+                document.getElementById('bookListDiv').innerHTML = output;
+            }
+        })
+        .catch((error) => {
+            console.log(error);
+        });
 }
 
 function GenerateNewAccessKey() {
-    if (totalAttempts < maxAttemptsAllowed) {
-        totalAttempts++;
-
-        fetch('https://www.forverkliga.se/JavaScript/api/crud.php?requestKey')
-            .then((response) => {
-                return response.json();
-            })
-            .then((jsonResponse) => {
-                if (jsonResponse.status != "success") {
-                    HandleFailedRequest();
-                    GenerateNewAccessKey();
-                } else {
-                    localStorage.setItem('accessKey', jsonResponse['key']);
-                    location.reload();
-                }
-            })
-            .catch((error) => {
-                console.log(error);
-            });
-    } else {
-        console.log("Aborting request.");
-        LoadDefaultState();
-    }
+    totalAttempts++;
+    fetch('https://www.forverkliga.se/JavaScript/api/crud.php?requestKey')
+        .then((response) => {
+            return response.json();
+        })
+        .then((jsonResponse) => {
+            if (jsonResponse.status != "success" && totalAttempts < maxAttemptsAllowed) {
+                HandleFailedRequest();
+                GenerateNewAccessKey();
+            } else if (jsonResponse.status != "success" && totalAttempts == maxAttemptsAllowed) {
+                HandleFailedRequest();
+            } else {
+                HandleSuccessfulRequest();
+                localStorage.setItem('accessKey', jsonResponse['key']);
+                location.reload();
+            }
+        })
+        .catch((error) => {
+            console.log(error);
+        });
 }
 
 function UpdateBook(id, title, author) {
-    //if (ValidateInputData(title, author) == false) {
-    //    location.reload();
-    //} else {
-    //    HandleQuery(updateOperation + '&id=' + id + '&title=' + title + '&author=' + author);
-    //    opacityDiv.style.visibility = "hidden";
-    //    location.reload();
-    //}
-
     if (ValidateInputData(title, author) == false) {
         location.reload();
     } else {
@@ -200,7 +177,9 @@ function UpdateBook(id, title, author) {
                     HandleFailedRequest();
                 } else {
                     HandleSuccessfulRequest();
-                    location.reload();
+                    document.getElementById('bookListDiv').title = title;
+                    document.getElementById('bookListDiv').author = author;
+                    DisplayAllBooks();
                 }
             })
             .catch((error) => {
@@ -211,56 +190,25 @@ function UpdateBook(id, title, author) {
 }
 
 function DeleteBook(id) {
-    //HandleQuery(deleteOperation + '&id=' + id);
-    if (totalAttempts < maxAttemptsAllowed) {
-        totalAttempts++;
-        console.log(`Deleting book from DB, attempt #${totalAttempts}`);
-        
-        fetch(deleteOperation + '&id=' + id)
-            .then((response) => {
-                return response.json();
-            })
-            .then((jsonResponse) => {
-                if (jsonResponse.status != "success") {
-                    HandleFailedRequest();
-                    DeleteBook(id);
-                } else {
-                    HandleSuccessfulRequest();
-                    DisplayAllBooks();
-                }
-            })
-            .catch((error) => {
-                console.log(error);
-            });
-    } else {
-        LoadDefaultState();
-    }
-}
-
-function HandleQuery(query) {
-    if (totalAttempts < maxAttemptsAllowed) {
-        totalAttempts++;
-        console.log(`Collective queryfunction... Attempt #${totalAttempts}`);
-
-        fetch(query)
-            .then((response) => {
-                return response.json();
-            })
-            .then((jsonResponse) => {
-                if (jsonResponse.status != "success") {
-                    HandleFailedRequest();
-                    HandleQuery(query);
-                } else {
-                    HandleSuccessfulRequest();
-                    DisplayAllBooks();
-                }
-            })
-            .catch((error) => {
-                console.log(error);
-            });
-    } else {
-        LoadDefaultState();
-    }
+    totalAttempts++;
+    fetch(deleteOperation + '&id=' + id)
+        .then((response) => {
+            return response.json();
+        })
+        .then((jsonResponse) => {
+            if (jsonResponse.status != "success" && totalAttempts < maxAttemptsAllowed) {
+                HandleFailedRequest();
+                DeleteBook(id);
+            } else if (jsonResponse.status != "success" && totalAttempts == maxAttemptsAllowed) {
+                HandleFailedRequest();
+            } else {
+                HandleSuccessfulRequest();
+                DisplayAllBooks();
+            }
+        })
+        .catch((error) => {
+            console.log(error);
+        });
 }
 
 function DisplayKey() {
@@ -268,7 +216,6 @@ function DisplayKey() {
 }
 
 function HandleFailedRequest() {
-    console.log("Within the HandleFailedRequest function");
     console.log(`Attempt #${totalAttempts}:`);
     console.log("There was an error in handling the request to the server.");
 
@@ -279,7 +226,6 @@ function HandleFailedRequest() {
 }
 
 function HandleSuccessfulRequest() {
-    console.log("Within the HandleSuccessfulRequest method");
     console.log(`Attempt #${totalAttempts}:`);
     console.log("Success!");
     console.log(`It took ${totalAttempts} attempts to complete the request.`);
@@ -292,5 +238,4 @@ function LoadDefaultState() {
     document.getElementById('bookTitleInput').value = '';
     document.getElementById('bookAuthorInput').value = '';
     totalAttempts = 0;
-    console.log(`Total attempts are now at ${totalAttempts}`);
 }
