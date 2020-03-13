@@ -5,7 +5,7 @@ const selectOperation = baseUrl + '&op=select';
 const insertOperation = baseUrl + '&op=insert';
 const updateOperation = baseUrl + '&op=update';
 const deleteOperation = baseUrl + '&op=delete';
-const maxAttemptsAllowed = 10;
+const maxAttemptsAllowed = 2;
 let bookList;
 let totalAttempts = 0;
 let opacityDiv = document.getElementById('opacityCover');
@@ -176,40 +176,42 @@ function GenerateNewAccessKey() {
 }
 
 function UpdateBook(id, title, author) {
+    //if (ValidateInputData(title, author) == false) {
+    //    location.reload();
+    //} else {
+    //    HandleQuery(updateOperation + '&id=' + id + '&title=' + title + '&author=' + author);
+    //    opacityDiv.style.visibility = "hidden";
+    //    location.reload();
+    //}
 
     if (ValidateInputData(title, author) == false) {
         location.reload();
     } else {
-        if (totalAttempts < maxAttemptsAllowed) {
-            totalAttempts++;
-
-            console.log(id, title, author);
-            fetch(updateOperation + '&id=' + id + '&title=' + title + '&author=' + author)
-                .then((response) => {
-                    return response.json();
-                })
-                .then((jsonResponse) => {
-                    if (jsonResponse.status != "success") {
-                        HandleFailedRequest();
-                        UpdateBook(id, title, author);
-                    } else {
-                        HandleSuccessfulRequest();
-                        location.reload();
-                    }
-                })
-                .catch((error) => {
-                    console.log(error);
-                });
-        } else {
-            location.reload();
-            LoadDefaultState();
-        }
+        totalAttempts++;
+        fetch(updateOperation + '&id=' + id + '&title=' + title + '&author=' + author)
+            .then((response) => {
+                return response.json();
+            })
+            .then((jsonResponse) => {
+                if (jsonResponse.status != "success" && totalAttempts < maxAttemptsAllowed) {
+                    HandleFailedRequest();
+                    UpdateBook(id, title, author);
+                } else if (jsonResponse.status != "success" && totalAttempts == maxAttemptsAllowed) {
+                    HandleFailedRequest();
+                } else {
+                    HandleSuccessfulRequest();
+                    location.reload();
+                }
+            })
+            .catch((error) => {
+                console.log(error);
+            });
         opacityDiv.style.visibility = "hidden";
-        LoadDefaultState();
     }
 }
 
 function DeleteBook(id) {
+    //HandleQuery(deleteOperation + '&id=' + id);
     if (totalAttempts < maxAttemptsAllowed) {
         totalAttempts++;
         console.log(`Deleting book from DB, attempt #${totalAttempts}`);
@@ -235,20 +237,49 @@ function DeleteBook(id) {
     }
 }
 
+function HandleQuery(query) {
+    if (totalAttempts < maxAttemptsAllowed) {
+        totalAttempts++;
+        console.log(`Collective queryfunction... Attempt #${totalAttempts}`);
+
+        fetch(query)
+            .then((response) => {
+                return response.json();
+            })
+            .then((jsonResponse) => {
+                if (jsonResponse.status != "success") {
+                    HandleFailedRequest();
+                    HandleQuery(query);
+                } else {
+                    HandleSuccessfulRequest();
+                    DisplayAllBooks();
+                }
+            })
+            .catch((error) => {
+                console.log(error);
+            });
+    } else {
+        LoadDefaultState();
+    }
+}
+
 function DisplayKey() {
     alert("Current access key: " + currentAccessKey);
 }
 
 function HandleFailedRequest() {
+    console.log("Within the HandleFailedRequest function");
     console.log(`Attempt #${totalAttempts}:`);
     console.log("There was an error in handling the request to the server.");
 
     if (totalAttempts == maxAttemptsAllowed) {
         console.log("Max number of connection attempts reached. Please try again later.");
+        LoadDefaultState();
     }
 }
 
 function HandleSuccessfulRequest() {
+    console.log("Within the HandleSuccessfulRequest method");
     console.log(`Attempt #${totalAttempts}:`);
     console.log("Success!");
     console.log(`It took ${totalAttempts} attempts to complete the request.`);
@@ -261,30 +292,5 @@ function LoadDefaultState() {
     document.getElementById('bookTitleInput').value = '';
     document.getElementById('bookAuthorInput').value = '';
     totalAttempts = 0;
+    console.log(`Total attempts are now at ${totalAttempts}`);
 }
-
-// Får man använda <fieldset> istället?
-// SVAR JA!
-
-
-/*
- * 
- */
-
-
-/*
-Syntax:
-
-let key = currentAccessKey
-const baseUrl = 'https://www.forverkliga.se/JavaScript/api/crud.php?key=' + key;
-const viewRequest = baseUrl + '&op=select';
-
-
-    op=insert
-    key - an API key that identifies the request
-    title - the book title
-    author - the name of the author
-
-Insert operation:
-baseUrl + '&title=' + title + '&author=' + author
- */
