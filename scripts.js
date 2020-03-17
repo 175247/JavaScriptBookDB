@@ -24,12 +24,12 @@ document.getElementById('popUpCancelButton').addEventListener('click', (function
 document.getElementById('logKey').addEventListener('click', DisplayKey);
 document.getElementById('forceRefresh').addEventListener('click', (function () { location.reload() }));
 
-function ValidateInputData(title, author) {
+function IsInputDataValid(title, author) {
 
     if (title.length < 2 || author.length < 2) {
         alert("Invalid input: Both fields must be 2 characters or longer.");
         return false;
-    } else if (TitleAndAuthorPresent(title, author) == true) {
+    } else if (IsTitleAndAuthorPresent(title, author) == true) {
         alert("Invalid input: That title and author combination already exists.");
         return false;
     } else {
@@ -37,16 +37,15 @@ function ValidateInputData(title, author) {
     }
 }
 
-function TitleAndAuthorPresent(title, author) {
-
-    const titleIndex = bookList.findIndex(bookTitle => bookTitle.title == title);
-    const authorIndex = bookList.findIndex(bookAuthor => bookAuthor.author == author);
-
-    if ((titleIndex >= 0 && authorIndex >= 0) &&
-        (titleIndex == authorIndex)) {
-        return true;
-    } else {
-        return false;
+function IsTitleAndAuthorPresent(title, author) {
+    for (let i = 0; i < bookList.length; i++) {
+        if (bookList[i].title == title && bookList[i].author == author) {
+            return true;
+            break;
+        } else {
+            continue;
+        }
+        break;
     }
 }
 
@@ -62,7 +61,7 @@ function HandlePopUpForm(id) {
             document.getElementById('popUpTitleInput').value,
             document.getElementById('popUpAuthorInput').value
         )
-    });
+        });
 
     document.getElementById('popUpTitleInput').value = null;
     document.getElementById('popUpAuthorInput').value = null;
@@ -72,7 +71,7 @@ function AddNewBook() {
     const title = document.getElementById('bookTitleInput').value;
     const author = document.getElementById('bookAuthorInput').value;
 
-    if (ValidateInputData(title, author) == false) {
+    if (IsInputDataValid(title, author) == false) {
         return;
     } else {
         totalAttempts++;
@@ -111,6 +110,7 @@ function DisplayAllBooks() {
                 HandleFailedRequest();
             } else {
                 HandleSuccessfulRequest();
+                
                 bookList = jsonResponse['data'];
 
                 bookList.sort(function (entry1, entry2) {
@@ -126,7 +126,7 @@ function DisplayAllBooks() {
                         '<li> Author: ' + item.author + '</li>' +
                         '</ul>' +
                         `<div class="bookItem">
-                        <button onclick="OpenPopUpForm(${item.id})">Update</button>
+                        <button class="updateButton" onclick="OpenPopUpForm(${item.id})">Update</button>
                         <button onclick="DeleteBook(${item.id})">Delete</button>`;
                 });
                 document.getElementById('bookListDiv').innerHTML = output;
@@ -161,7 +161,7 @@ function GenerateNewAccessKey() {
 }
 
 function UpdateBook(id, title, author) {
-    if (ValidateInputData(title, author) == false) {
+    if (IsInputDataValid(title, author) == false) {
         location.reload();
     } else {
         totalAttempts++;
@@ -176,10 +176,7 @@ function UpdateBook(id, title, author) {
                 } else if (jsonResponse.status != "success" && totalAttempts == maxAttemptsAllowed) {
                     HandleFailedRequest();
                 } else {
-                    HandleSuccessfulRequest();
-                    document.getElementById('bookListDiv').title = title;
-                    document.getElementById('bookListDiv').author = author;
-                    DisplayAllBooks();
+                    location.reload();
                 }
             })
             .catch((error) => {
@@ -204,6 +201,30 @@ function DeleteBook(id) {
             } else {
                 HandleSuccessfulRequest();
                 DisplayAllBooks();
+            }
+        })
+        .catch((error) => {
+            console.log(error);
+        });
+}
+
+function ManageQuery(operation) {
+    totalAttempts++;
+    fetch(operation)
+        .then((response) => {
+            return response.json();
+        })
+        .then((jsonResponse) => {
+            if (jsonResponse.status != "success" && totalAttempts < maxAttemptsAllowed) {
+                HandleFailedRequest();
+                ManageQuery(operation);
+            } else if (jsonResponse.status != "success" && totalAttempts == maxAttemptsAllowed) {
+                HandleFailedRequest();
+                return false;
+            } else {
+                HandleSuccessfulRequest();
+                DisplayAllBooks();
+                return true;
             }
         })
         .catch((error) => {
