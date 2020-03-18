@@ -66,6 +66,7 @@ function HandlePopUpForm(id) {
 function AddNewBook() {
     const title = document.getElementById('bookTitleInput').value;
     const author = document.getElementById('bookAuthorInput').value;
+
     if (IsInputDataValid(title, author) == false) {
         return;
     } else {
