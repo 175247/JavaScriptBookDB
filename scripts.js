@@ -176,7 +176,10 @@ function UpdateBook(id, title, author) {
                 } else if (jsonResponse.status != "success" && totalAttempts == maxAttemptsAllowed) {
                     HandleFailedRequest();
                 } else {
-                    location.reload();
+                    //location.reload();
+                    document.getElementById('bookListDiv').title = title;
+                    document.getElementById('bookListDiv').author = author;
+                    DisplayAllBooks();
                 }
             })
             .catch((error) => {
