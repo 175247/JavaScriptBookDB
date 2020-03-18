@@ -20,7 +20,7 @@ if (currentAccessKey == null) {
 // EventListeners for buttons.
 document.getElementById('submitBookButton').addEventListener('click', AddNewBook);
 document.getElementById('registerNewUser').addEventListener('click', GenerateNewAccessKey);
-document.getElementById('popUpCancelButton').addEventListener('click', (function () { location.reload() }));
+document.getElementById('popUpCancelButton').addEventListener('click', (function () { opacityDiv.style.visibility = "hidden"; LoadDefaultState(); }));
 document.getElementById('logKey').addEventListener('click', DisplayKey);
 document.getElementById('forceRefresh').addEventListener('click', (function () { location.reload() }));
 
@@ -55,40 +55,23 @@ function OpenPopUpForm(id) {
 }
 
 function HandlePopUpForm(id) {
-    document.getElementById('popUpSubmitButton').addEventListener('click',
-    function () {
+    document.getElementById('popUpSubmitButton').onclick = function () {
         UpdateBook(id,
             document.getElementById('popUpTitleInput').value,
             document.getElementById('popUpAuthorInput').value
         )
-        });
-
-    document.getElementById('popUpTitleInput').value = null;
-    document.getElementById('popUpAuthorInput').value = null;
+    };
 }
 
 function AddNewBook() {
     const title = document.getElementById('bookTitleInput').value;
     const author = document.getElementById('bookAuthorInput').value;
-
     if (IsInputDataValid(title, author) == false) {
         return;
     } else {
-        totalAttempts++;
-        fetch(insertOperation + '&title=' + title + '&author=' + author)
-            .then((response) => {
-                return response.json();
-            })
-            .then((jsonResponse) => {
-                if (jsonResponse.status != "success" && totalAttempts < maxAttemptsAllowed) {
-                    HandleFailedRequest();
-                    AddNewBook(title, author);
-                } else if (jsonResponse.status != "success" && totalAttempts == maxAttemptsAllowed) {
-                    HandleFailedRequest();
-                } else {
-                    HandleSuccessfulRequest();
-                    DisplayAllBooks();
-                }
+        ManageQuery(insertOperation + '&title=' + title + '&author=' + author)
+            .then(() => {
+                DisplayAllBooks();
             })
             .catch((error) => {
                 console.log(error);
@@ -162,77 +145,53 @@ function GenerateNewAccessKey() {
 
 function UpdateBook(id, title, author) {
     if (IsInputDataValid(title, author) == false) {
-        location.reload();
+        return;
     } else {
+        ManageQuery(updateOperation + '&id=' + id + '&title=' + title + '&author=' + author)
+            .then(() => {
+                DisplayAllBooks();
+            })
+            .catch((error) => {
+                console.log(error);
+            });
+    }
+
+    opacityDiv.style.visibility = "hidden";
+}
+
+function DeleteBook(id) {
+    ManageQuery(deleteOperation + '&id=' + id)
+        .then(() => {
+            DisplayAllBooks();
+        }).catch((error) => {
+            console.log(error);
+        });
+}
+
+function ManageQuery(operation) {
+    return new Promise(function (resolve, reject) {
         totalAttempts++;
-        fetch(updateOperation + '&id=' + id + '&title=' + title + '&author=' + author)
+        fetch(operation)
             .then((response) => {
                 return response.json();
             })
             .then((jsonResponse) => {
                 if (jsonResponse.status != "success" && totalAttempts < maxAttemptsAllowed) {
                     HandleFailedRequest();
-                    UpdateBook(id, title, author);
+                    ManageQuery(operation);
                 } else if (jsonResponse.status != "success" && totalAttempts == maxAttemptsAllowed) {
                     HandleFailedRequest();
+                    reject();
                 } else {
-                    //location.reload();
-                    document.getElementById('bookListDiv').title = title;
-                    document.getElementById('bookListDiv').author = author;
+                    HandleSuccessfulRequest();
                     DisplayAllBooks();
+                    resolve();
                 }
             })
             .catch((error) => {
                 console.log(error);
             });
-        opacityDiv.style.visibility = "hidden";
-    }
-}
-
-function DeleteBook(id) {
-    totalAttempts++;
-    fetch(deleteOperation + '&id=' + id)
-        .then((response) => {
-            return response.json();
-        })
-        .then((jsonResponse) => {
-            if (jsonResponse.status != "success" && totalAttempts < maxAttemptsAllowed) {
-                HandleFailedRequest();
-                DeleteBook(id);
-            } else if (jsonResponse.status != "success" && totalAttempts == maxAttemptsAllowed) {
-                HandleFailedRequest();
-            } else {
-                HandleSuccessfulRequest();
-                DisplayAllBooks();
-            }
-        })
-        .catch((error) => {
-            console.log(error);
-        });
-}
-
-function ManageQuery(operation) {
-    totalAttempts++;
-    fetch(operation)
-        .then((response) => {
-            return response.json();
-        })
-        .then((jsonResponse) => {
-            if (jsonResponse.status != "success" && totalAttempts < maxAttemptsAllowed) {
-                HandleFailedRequest();
-                ManageQuery(operation);
-            } else if (jsonResponse.status != "success" && totalAttempts == maxAttemptsAllowed) {
-                HandleFailedRequest();
-                return false;
-            } else {
-                HandleSuccessfulRequest();
-                DisplayAllBooks();
-                return true;
-            }
-        })
-        .catch((error) => {
-            console.log(error);
-        });
+    });
 }
 
 function DisplayKey() {
@@ -261,5 +220,7 @@ function LoadDefaultState() {
     console.log("Loading default state...");
     document.getElementById('bookTitleInput').value = '';
     document.getElementById('bookAuthorInput').value = '';
+    document.getElementById('popUpTitleInput').value = '';
+    document.getElementById('popUpAuthorInput').value = '';
     totalAttempts = 0;
 }
