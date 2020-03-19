@@ -17,12 +17,11 @@ if (currentAccessKey == null) {
     DisplayAllBooks();
 }
 
-// EventListeners for buttons.
-document.getElementById('submitBookButton').addEventListener('click', AddNewBook);
-document.getElementById('registerNewUser').addEventListener('click', GenerateNewAccessKey);
-document.getElementById('popUpCancelButton').addEventListener('click', (function () { opacityDiv.style.visibility = "hidden"; LoadDefaultState(); }));
-document.getElementById('logKey').addEventListener('click', DisplayKey);
-document.getElementById('forceRefresh').addEventListener('click', (function () { location.reload() }));
+document.getElementById('submitBookButton').onclick = AddNewBook;
+document.getElementById('registerNewUser').onclick = GenerateNewAccessKey;
+document.getElementById('popUpCancelButton').onclick = (function () { opacityDiv.style.visibility = "hidden"; LoadDefaultState(); });
+document.getElementById('logKey').onclick = DisplayKey;
+document.getElementById('forceRefresh').onclick = (function () { location.reload() });
 
 function IsInputDataValid(title, author) {
 
@@ -94,7 +93,6 @@ function DisplayAllBooks() {
                 HandleFailedRequest();
             } else {
                 HandleSuccessfulRequest();
-                
                 bookList = jsonResponse['data'];
 
                 bookList.sort(function (entry1, entry2) {
