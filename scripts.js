@@ -31,7 +31,11 @@ function IsInputDataValid(title, author) {
     } else if (IsTitleAndAuthorPresent(title, author) == true) {
         alert("Invalid input: That title and author combination already exists.");
         return false;
-    } else {
+    } else if (IsInputDoubleWhiteSpace(title, author) == true) {
+        alert("Two or more consequtive white spaces are not allowed.")
+        return false;
+    }
+    else {
         return true;
     }
 }
@@ -45,6 +49,33 @@ function IsTitleAndAuthorPresent(title, author) {
             continue;
         }
         break;
+    }
+}
+
+function IsInputDoubleWhiteSpace(title, author) {
+    let titleStatus = true;
+    let authorStatus = true;
+
+    for (let i = 0; i < title.length - 1; i++) {
+        if (title[i] == ' ' && title[i + 1] == ' ') {
+            titleStatus = true;
+        } else {
+            titleStatus = false;
+        }
+    }
+
+    for (let i = 0; i < author.length - 1; i++) {
+        if (author[i] == ' ' && author[i + 1] == ' ') {
+            authorStatus = true;
+        } else {
+            authorStatus = false;
+        }
+    }
+
+    if (titleStatus == true || authorStatus == true) {
+        return true;
+    } else {
+        return false;
     }
 }
 
@@ -74,7 +105,6 @@ function AddNewBook() {
                 DisplayAllBooks();
             })
             .catch((error) => {
-                console.log(error);
             });
     }
 }
@@ -115,7 +145,6 @@ function DisplayAllBooks() {
             }
         })
         .catch((error) => {
-            console.log(error);
         });
 }
 
@@ -138,7 +167,6 @@ function GenerateNewAccessKey() {
             }
         })
         .catch((error) => {
-            console.log(error);
         });
 }
 
@@ -151,7 +179,6 @@ function UpdateBook(id, title, author) {
                 DisplayAllBooks();
             })
             .catch((error) => {
-                console.log(error);
             });
     }
 
@@ -163,7 +190,6 @@ function DeleteBook(id) {
         .then(() => {
             DisplayAllBooks();
         }).catch((error) => {
-            console.log(error);
         });
 }
 
@@ -188,7 +214,6 @@ function ManageQuery(operation) {
                 }
             })
             .catch((error) => {
-                console.log(error);
             });
     });
 }
