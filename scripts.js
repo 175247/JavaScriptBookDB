@@ -6,7 +6,7 @@ const insertOperation = baseUrl + '&op=insert';
 const updateOperation = baseUrl + '&op=update';
 const deleteOperation = baseUrl + '&op=delete';
 const maxAttemptsAllowed = 10;
-let bookList;
+let bookList = [];
 let totalAttempts = 0;
 let opacityDiv = document.getElementById('opacityCover');
 opacityDiv.style.visibility = "hidden";
@@ -59,17 +59,21 @@ function IsInputDoubleWhiteSpace(title, author) {
     for (let i = 0; i < title.length - 1; i++) {
         if (title[i] == ' ' && title[i + 1] == ' ') {
             titleStatus = true;
+            break;
         } else {
             titleStatus = false;
         }
+        break;
     }
 
     for (let i = 0; i < author.length - 1; i++) {
         if (author[i] == ' ' && author[i + 1] == ' ') {
             authorStatus = true;
+            break;
         } else {
             authorStatus = false;
         }
+        break;
     }
 
     if (titleStatus == true || authorStatus == true) {
@@ -102,9 +106,10 @@ function AddNewBook() {
     } else {
         ManageQuery(insertOperation + '&title=' + title + '&author=' + author)
             .then(() => {
-                DisplayAllBooks();
+                //DisplayAllBooks();
             })
             .catch((error) => {
+                return;
             });
     }
 }
@@ -121,30 +126,36 @@ function DisplayAllBooks() {
                 DisplayAllBooks();
             } else if (jsonResponse.status != "success" && totalAttempts == maxAttemptsAllowed) {
                 HandleFailedRequest();
+                document.getElementById('operationStatus').innerHTML = (`Unable to fetch booklist.<br>Operation failed.`);
             } else {
+                LoadDefaultState();
                 HandleSuccessfulRequest();
                 bookList = jsonResponse['data'];
 
-                bookList.sort(function (entry1, entry2) {
-                    return entry1.id - entry2.id;
-                });
+                if (bookList.length == 0) {
+                    document.getElementById('operationStatus').innerHTML = '';
+                } else {
+                    bookList.sort(function (entry1, entry2) {
+                        return entry1.id - entry2.id;
+                    });
 
-                let output = '';
-
-                bookList.forEach(function (item) {
-                    output += '<ul>' +
-                        '<li> ID: ' + item.id + '</li>' +
-                        '<li> Title: ' + item.title + '</li>' +
-                        '<li> Author: ' + item.author + '</li>' +
-                        '</ul>' +
-                        `<div class="bookItem">
+                    let output = '';
+                    bookList.forEach(function (item) {
+                        output += '<ul>' +
+                            '<li> ID: ' + item.id + '</li>' +
+                            '<li> Title: ' + item.title + '</li>' +
+                            '<li> Author: ' + item.author + '</li>' +
+                            '</ul>' +
+                            `<div class="bookItem">
                         <button class="updateButton" onclick="OpenPopUpForm(${item.id})">Update</button>
                         <button onclick="DeleteBook(${item.id})">Delete</button>`;
-                });
-                document.getElementById('bookListDiv').innerHTML = output;
+                    });
+                    document.getElementById('bookListDiv').innerHTML = output;
+                }
             }
         })
         .catch((error) => {
+            return;
         });
 }
 
@@ -165,8 +176,10 @@ function GenerateNewAccessKey() {
                 localStorage.setItem('accessKey', jsonResponse['key']);
                 location.reload();
             }
+        alert(`New Access Key generated successfully!`);
         })
         .catch((error) => {
+            return;
         });
 }
 
@@ -176,9 +189,9 @@ function UpdateBook(id, title, author) {
     } else {
         ManageQuery(updateOperation + '&id=' + id + '&title=' + title + '&author=' + author)
             .then(() => {
-                DisplayAllBooks();
             })
             .catch((error) => {
+                return;
             });
     }
 
@@ -189,7 +202,9 @@ function DeleteBook(id) {
     ManageQuery(deleteOperation + '&id=' + id)
         .then(() => {
             DisplayAllBooks();
-        }).catch((error) => {
+        })
+        .catch((error) => {
+            return;
         });
 }
 
@@ -206,16 +221,18 @@ function ManageQuery(operation) {
                     ManageQuery(operation);
                 } else if (jsonResponse.status != "success" && totalAttempts == maxAttemptsAllowed) {
                     HandleFailedRequest();
-                    reject();
+                    //reject().catch(error => { alert('Still in the reject!') })
+                    //return reject();
                 } else {
                     HandleSuccessfulRequest();
                     DisplayAllBooks();
-                    resolve();
+                    return resolve();
                 }
             })
             .catch((error) => {
+                return;
             });
-    });
+    }, );
 }
 
 function DisplayKey() {
@@ -223,20 +240,28 @@ function DisplayKey() {
 }
 
 function HandleFailedRequest() {
+    if (totalAttempts == 0) {
+        totalAttempts = 1;
+    }
     console.log(`Attempt #${totalAttempts}:`);
     console.log("There was an error in handling the request to the server.");
 
     if (totalAttempts == maxAttemptsAllowed) {
         console.log("Max number of connection attempts reached. Please try again later.");
+        document.getElementById('operationStatus').innerHTML = (`Operation unsuccessful.`);
         LoadDefaultState();
     }
 }
 
 function HandleSuccessfulRequest() {
+    if (totalAttempts == 0) {
+        totalAttempts = 1;
+    }
+
     console.log(`Attempt #${totalAttempts}:`);
     console.log("Success!");
     console.log(`It took ${totalAttempts} attempts to complete the request.`);
-
+    document.getElementById('operationStatus').innerHTML = (`Operation successful!`);
     LoadDefaultState();
 }
 
