@@ -5,6 +5,12 @@
 
 }
 
+#operationStatus {
+    position: absolute;
+    display: inline-block;
+    margin-left: 30vw;
+}
+
 #mainDiv button {
     margin-bottom: 3vh;
 }
@@ -28,7 +34,7 @@
     width: 100vw;
     position: absolute;
     background-color: black;
-    opacity: 80%;
+    opacity: 0.8;
 }
 
 #opacityCover #popUpDiv {
