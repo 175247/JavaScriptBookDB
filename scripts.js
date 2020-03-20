@@ -33,8 +33,7 @@ function IsInputDataValid(title, author) {
     } else if (IsInputDoubleWhiteSpace(title, author) == true) {
         alert("Two or more consequtive white spaces are not allowed.")
         return false;
-    }
-    else {
+    } else {
         return true;
     }
 }
@@ -183,7 +182,7 @@ function GenerateNewAccessKey() {
                 localStorage.setItem('accessKey', jsonResponse['key']);
                 location.reload();
             }
-        alert(`Successfully generated new access key!`);
+            alert(`Successfully generated new access key!`);
         })
         .catch((error) => {
             return;
