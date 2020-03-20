@@ -2,7 +2,6 @@
     border-bottom: 2px solid black;
     width: 30vw;
     overflow: hidden;
-
 }
 
 #operationStatus {
@@ -64,4 +63,8 @@
     position: absolute;
     margin-top: 5vh;
     margin-left: 8vw;
+}
+
+#formToSubmitBook {
+    width: 25vw;
 }
