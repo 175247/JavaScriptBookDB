@@ -33,8 +33,7 @@ function IsInputDataValid(title, author) {
     } else if (IsInputDoubleWhiteSpace(title, author) == true) {
         alert("Two or more consequtive white spaces are not allowed.")
         return false;
-    }
-    else {
+    } else {
         return true;
     }
 }
