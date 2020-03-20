@@ -105,9 +105,7 @@ function AddNewBook() {
         return;
     } else {
         ManageQuery(insertOperation + '&title=' + title + '&author=' + author)
-            .then(() => {
-                //DisplayAllBooks();
-            })
+            .then(HandleSuccessfulRequest(), HandleFailedRequest())           
             .catch((error) => {
                 return;
             });
@@ -128,7 +126,7 @@ function DisplayAllBooks() {
                 HandleFailedRequest();
                 document.getElementById('operationStatus').innerHTML = (`Unable to fetch booklist.<br>Operation failed.`);
             } else {
-                LoadDefaultState();
+                //LoadDefaultState();
                 HandleSuccessfulRequest();
                 bookList = jsonResponse['data'];
 
@@ -188,8 +186,7 @@ function UpdateBook(id, title, author) {
         return;
     } else {
         ManageQuery(updateOperation + '&id=' + id + '&title=' + title + '&author=' + author)
-            .then(() => {
-            })
+            .then(DisplayAllBooks(), HandleFailedRequest())
             .catch((error) => {
                 return;
             });
@@ -200,18 +197,17 @@ function UpdateBook(id, title, author) {
 
 function DeleteBook(id) {
     ManageQuery(deleteOperation + '&id=' + id)
-        .then(() => {
-            DisplayAllBooks();
-        })
+        .then(DisplayAllBooks(), DisplayAllBooks())
         .catch((error) => {
             return;
         });
+    DisplayAllBooks();
 }
 
 function ManageQuery(operation) {
     return new Promise(function (resolve, reject) {
         totalAttempts++;
-        fetch(operation)
+        fetch(operation, HandleFailedRequest())
             .then((response) => {
                 return response.json();
             })
@@ -220,10 +216,8 @@ function ManageQuery(operation) {
                     HandleFailedRequest();
                     ManageQuery(operation);
                 } else if (jsonResponse.status != "success" && totalAttempts == maxAttemptsAllowed) {
-                    HandleFailedRequest();
                     reject();
                 } else {
-                    HandleSuccessfulRequest();
                     DisplayAllBooks();
                     resolve();
                 }
@@ -248,7 +242,7 @@ function HandleFailedRequest() {
     if (totalAttempts == maxAttemptsAllowed) {
         console.log("Max number of connection attempts reached. Please try again later.");
         document.getElementById('operationStatus').innerHTML = (`Operation unsuccessful.`);
-        LoadDefaultState();
+        (function () { LoadDefaultState() });
     }
 }
 
