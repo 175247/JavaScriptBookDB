@@ -7,7 +7,7 @@
 #operationStatus {
     position: absolute;
     display: inline-block;
-    margin-left: 30vw;
+    margin-left: 20vw;
 }
 
 #mainDiv button {
@@ -66,5 +66,5 @@
 }
 
 #formToSubmitBook {
-    width: 25vw;
+    width: 17vw;
 }
