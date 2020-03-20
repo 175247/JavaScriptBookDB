@@ -24,7 +24,6 @@ document.getElementById('logKey').onclick = DisplayKey;
 document.getElementById('forceRefresh').onclick = (function () { location.reload() });
 
 function IsInputDataValid(title, author) {
-
     if (title.length < 2 || author.length < 2) {
         alert("Invalid input: Both fields must be 2 characters or longer.");
         return false;
@@ -104,12 +103,27 @@ function AddNewBook() {
     if (IsInputDataValid(title, author) == false) {
         return;
     } else {
-        ManageQuery(insertOperation + '&title=' + title + '&author=' + author)
-            .then(HandleSuccessfulRequest(), HandleFailedRequest())           
+        totalAttempts++;
+        fetch(insertOperation + '&title=' + title + '&author=' + author)
+            .then((response) => {
+                return response.json();
+            })
+            .then((jsonResponse) => {
+                if (jsonResponse.status != "success" && totalAttempts < maxAttemptsAllowed) {
+                    HandleFailedRequest();
+                    AddNewBook(title, author);
+                } else if (jsonResponse.status != "success" && totalAttempts == maxAttemptsAllowed) {
+                    HandleFailedRequest();
+                } else {
+                    HandleSuccessfulRequest();
+                    DisplayAllBooks();
+                }
+            })
             .catch((error) => {
                 return;
             });
     }
+    document.getElementById('operationStatus').innerHTML = (`Book added successfully.`);
 }
 
 function DisplayAllBooks() {
@@ -124,36 +138,31 @@ function DisplayAllBooks() {
                 DisplayAllBooks();
             } else if (jsonResponse.status != "success" && totalAttempts == maxAttemptsAllowed) {
                 HandleFailedRequest();
-                document.getElementById('operationStatus').innerHTML = (`Unable to fetch booklist.<br>Operation failed.`);
+                document.getElementById('operationStatus').innerHTML = (`Could not load booklist.<br>Refresh to try again.`);
             } else {
-                //LoadDefaultState();
                 HandleSuccessfulRequest();
                 bookList = jsonResponse['data'];
 
-                if (bookList.length == 0) {
-                    document.getElementById('operationStatus').innerHTML = '';
-                } else {
-                    bookList.sort(function (entry1, entry2) {
-                        return entry1.id - entry2.id;
-                    });
+                bookList.sort(function (entry1, entry2) {
+                    return entry1.id - entry2.id;
+                });
 
-                    let output = '';
-                    bookList.forEach(function (item) {
-                        output += '<ul>' +
-                            '<li> ID: ' + item.id + '</li>' +
-                            '<li> Title: ' + item.title + '</li>' +
-                            '<li> Author: ' + item.author + '</li>' +
-                            '</ul>' +
-                            `<div class="bookItem">
+                let output = '';
+                bookList.forEach(function (item) {
+                    output += '<ul>' +
+                        '<li> ID: ' + item.id + '</li>' +
+                        '<li> Title: ' + item.title + '</li>' +
+                        '<li> Author: ' + item.author + '</li>' +
+                        '</ul>' +
+                        `<div class="bookItem">
                         <button class="updateButton" onclick="OpenPopUpForm(${item.id})">Update</button>
                         <button onclick="DeleteBook(${item.id})">Delete</button>`;
-                    });
-                    document.getElementById('bookListDiv').innerHTML = output;
-                }
+                });
+                document.getElementById('bookListDiv').innerHTML = output;
             }
         })
         .catch((error) => {
-            return;
+            console.log(error);
         });
 }
 
@@ -174,7 +183,7 @@ function GenerateNewAccessKey() {
                 localStorage.setItem('accessKey', jsonResponse['key']);
                 location.reload();
             }
-        alert(`New Access Key generated successfully!`);
+        alert(`Successfully generated new access key!`);
         })
         .catch((error) => {
             return;
@@ -183,49 +192,52 @@ function GenerateNewAccessKey() {
 
 function UpdateBook(id, title, author) {
     if (IsInputDataValid(title, author) == false) {
-        return;
+        location.reload();
     } else {
-        ManageQuery(updateOperation + '&id=' + id + '&title=' + title + '&author=' + author)
-            .then(DisplayAllBooks(), HandleFailedRequest())
-            .catch((error) => {
-                return;
-            });
-    }
-
-    opacityDiv.style.visibility = "hidden";
-}
-
-function DeleteBook(id) {
-    ManageQuery(deleteOperation + '&id=' + id)
-        .then(DisplayAllBooks(), DisplayAllBooks())
-        .catch((error) => {
-            return;
-        });
-    DisplayAllBooks();
-}
-
-function ManageQuery(operation) {
-    return new Promise(function (resolve, reject) {
         totalAttempts++;
-        fetch(operation, HandleFailedRequest())
+        fetch(updateOperation + '&id=' + id + '&title=' + title + '&author=' + author)
             .then((response) => {
                 return response.json();
             })
             .then((jsonResponse) => {
                 if (jsonResponse.status != "success" && totalAttempts < maxAttemptsAllowed) {
                     HandleFailedRequest();
-                    ManageQuery(operation);
+                    UpdateBook(id, title, author);
                 } else if (jsonResponse.status != "success" && totalAttempts == maxAttemptsAllowed) {
-                    reject();
+                    HandleFailedRequest();
                 } else {
                     DisplayAllBooks();
-                    resolve();
                 }
             })
             .catch((error) => {
-                return;
+                console.log(error);
             });
-    }, );
+        opacityDiv.style.visibility = "hidden";
+    }
+    document.getElementById('operationStatus').innerHTML = (`Update operation successsful (book ID ${id})`);
+}
+
+function DeleteBook(id) {
+    totalAttempts++;
+    fetch(deleteOperation + '&id=' + id)
+        .then((response) => {
+            return response.json();
+        })
+        .then((jsonResponse) => {
+            if (jsonResponse.status != "success" && totalAttempts < maxAttemptsAllowed) {
+                HandleFailedRequest();
+                DeleteBook(id);
+            } else if (jsonResponse.status != "success" && totalAttempts == maxAttemptsAllowed) {
+                HandleFailedRequest();
+            } else {
+                HandleSuccessfulRequest();
+                DisplayAllBooks();
+            }
+        })
+        .catch((error) => {
+            return;
+        });
+    document.getElementById('operationStatus').innerHTML = (`Book deleted successfully.`);
 }
 
 function DisplayKey() {
@@ -233,28 +245,20 @@ function DisplayKey() {
 }
 
 function HandleFailedRequest() {
-    if (totalAttempts == 0) {
-        totalAttempts = 1;
-    }
     console.log(`Attempt #${totalAttempts}:`);
     console.log("There was an error in handling the request to the server.");
 
     if (totalAttempts == maxAttemptsAllowed) {
         console.log("Max number of connection attempts reached. Please try again later.");
-        document.getElementById('operationStatus').innerHTML = (`Operation unsuccessful.`);
-        (function () { LoadDefaultState() });
+        document.getElementById('operationStatus').innerHTML = (`Operation unsuccessful.<br>If the problem persists, force refresh the page.`);
+        LoadDefaultState();
     }
 }
 
 function HandleSuccessfulRequest() {
-    if (totalAttempts == 0) {
-        totalAttempts = 1;
-    }
-
     console.log(`Attempt #${totalAttempts}:`);
     console.log("Success!");
     console.log(`It took ${totalAttempts} attempts to complete the request.`);
-    document.getElementById('operationStatus').innerHTML = (`Operation successful!`);
     LoadDefaultState();
 }
 
