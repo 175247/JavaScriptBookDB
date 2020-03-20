@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="se">
 <head>
     <link rel="stylesheet" type="text/css" href="stylesheet.css">
@@ -8,23 +8,32 @@
 </head>
 <body>
     <div id="mainDiv">
+        <div id="opacityCover">
+            <div id="popUpDiv">
+                <form id="popUpForm">
+                    <input type="text" id="popUpTitleInput" placeholder="Title" /><br>
+                    <input type="text" id="popUpAuthorInput" placeholder="Author" /><br>
+                </form>
+                <button id="popUpSubmitButton">Submit</button>
+                <button id="popUpCancelButton">Cancel</button>
+            </div>
+        </div>
+
         <p>Hey there! Add your favourite books by title and author.</p>
-        <form id="formToSubmitBook" action="#">
-            <label for="bookTitleInput">Title</label><br>
-            <input type="text" id="bookTitleInput" /><br>
-            <label for="bookAuthorInput">Author</label><br>
-            <input type="text" id="bookAuthorInput" /><br>
+        <p id="operationStatus"></p>
+        <form id="formToSubmitBook">
+            <input type="text" id="bookTitleInput" placeholder="Title" /><br>
+            <input type="text" id="bookAuthorInput" placeholder="Author" /><br>
             <input type="button"
                    form="formToSubmitBook"
                    id="submitBookButton"
-                   value="Submit "
-                   onclick="AddNewBook(document.getElementById('bookTitleInput').value,
-                    document.getElementById('bookAuthorInput').value)" />
-            <button id="registerNewUser">New User</button>
-
-
+                   value="Submit" />
         </form>
+        <button id="registerNewUser">New User</button>
+        <button id="logKey">Show Access Key</button>
+        <button id="forceRefresh">Force Refresh</button>
     </div>
+    <div id="bookListDiv"></div>
     <script src="scripts.js"></script>
 </body>
 </html>
