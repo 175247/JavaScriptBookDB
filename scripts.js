@@ -116,13 +116,13 @@ function AddNewBook() {
                 } else {
                     HandleSuccessfulRequest();
                     DisplayAllBooks();
+                    document.getElementById('operationStatus').innerHTML = (`Book added successfully.`);
                 }
             })
             .catch((error) => {
                 return;
             });
     }
-    document.getElementById('operationStatus').innerHTML = (`Book added successfully.`);
 }
 
 function DisplayAllBooks() {
@@ -161,7 +161,7 @@ function DisplayAllBooks() {
             }
         })
         .catch((error) => {
-            console.log(error);
+            return;
         });
 }
 
@@ -206,14 +206,14 @@ function UpdateBook(id, title, author) {
                     HandleFailedRequest();
                 } else {
                     DisplayAllBooks();
+                    document.getElementById('operationStatus').innerHTML = (`Update operation successsful (book ID ${id})`);
                 }
             })
             .catch((error) => {
-                console.log(error);
+                return;
             });
         opacityDiv.style.visibility = "hidden";
     }
-    document.getElementById('operationStatus').innerHTML = (`Update operation successsful (book ID ${id})`);
 }
 
 function DeleteBook(id) {
@@ -231,12 +231,12 @@ function DeleteBook(id) {
             } else {
                 HandleSuccessfulRequest();
                 DisplayAllBooks();
+                document.getElementById('operationStatus').innerHTML = (`Book deleted successfully.`);
             }
         })
         .catch((error) => {
             return;
         });
-    document.getElementById('operationStatus').innerHTML = (`Book deleted successfully.`);
 }
 
 function DisplayKey() {
@@ -244,7 +244,6 @@ function DisplayKey() {
 }
 
 function HandleFailedRequest() {
-    console.log(`Attempt #${totalAttempts}:`);
     console.log("There was an error in handling the request to the server.");
 
     if (totalAttempts == maxAttemptsAllowed) {
@@ -255,14 +254,10 @@ function HandleFailedRequest() {
 }
 
 function HandleSuccessfulRequest() {
-    console.log(`Attempt #${totalAttempts}:`);
-    console.log("Success!");
-    console.log(`It took ${totalAttempts} attempts to complete the request.`);
     LoadDefaultState();
 }
 
 function LoadDefaultState() {
-    console.log("Loading default state...");
     document.getElementById('bookTitleInput').value = '';
     document.getElementById('bookAuthorInput').value = '';
     document.getElementById('popUpTitleInput').value = '';
