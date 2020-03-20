@@ -221,12 +221,11 @@ function ManageQuery(operation) {
                     ManageQuery(operation);
                 } else if (jsonResponse.status != "success" && totalAttempts == maxAttemptsAllowed) {
                     HandleFailedRequest();
-                    //reject().catch(error => { alert('Still in the reject!') })
-                    //return reject();
+                    reject();
                 } else {
                     HandleSuccessfulRequest();
                     DisplayAllBooks();
-                    return resolve();
+                    resolve();
                 }
             })
             .catch((error) => {
